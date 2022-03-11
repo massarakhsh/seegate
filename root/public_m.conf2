@@ -1,0 +1,50 @@
+# Samba list access
+[file]
+	comment = Файлы для открытого доступа
+	path = /pub/file
+	browseable = yes
+	writeable = yes
+
+[macro]
+	path = /pub/macro
+	browseable = yes
+
+[nesin]
+	path = /pub/nesin
+	browseable = yes
+	writeable = yes
+	hosts allow = 192.168.234.48/255.255.255.240 192.168.233. 192.168.0.173 192.168.0.115 192.168.230.211 192.168.234.11 192.168.236.12 192.168.236.11
+
+[s]
+	comment = Общий диск пользователей
+	path = /pub/S
+	browseable = yes
+	writeable = yes
+	hosts allow = 192.168.0. 192.168.230. 192.168.231. 192.168.232. 192.168.234. \ 	    192.168.235. 192.168.236. 192.168.237. 192.168.190. 192.168.229. \ 	    192.168.233.15 192.168.233.58
+
+[soft]
+	comment = Программное обеспечение
+	path = /pub/soft
+	browseable = yes
+
+[t]
+	path = /pub/soft
+	browseable = yes
+	hosts allow = /pub/soft
+
+[to]
+	path = /pub/TO
+
+[v]
+	comment = Общий диск пользователей
+	path = /pub/V
+	browseable = yes
+	writeable = yes
+	hosts allow = 192.168. 10.62.
+
+[www]
+	comment = Веб-серверы
+	path = /var/www
+	writeable = yes
+	hosts allow = 192.168.234. 192.168.229. 192.168.190.60 \ 	    192.168.230.12 192.168.230.195 192.168.230.235 192.168.230.206
+
