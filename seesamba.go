@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/massarakhsh/lik"
-	"github.com/massarakhsh/lik/likbase"
 )
 
 var optServ = ""
@@ -13,20 +12,15 @@ var optBase = ""
 var optUser = ""
 var optPass = ""
 
-var DB likbase.DBaser
-
 func main() {
 	getArgs()
-	logon := optUser + ":" + optPass
-	addr := "tcp(" + optServ + ":3306)"
-	if DB = likbase.OpenDBase("mysql", logon, addr, optBase); DB == nil {
-		lik.SayError(fmt.Sprint("DB not opened"))
+
+	if !OpenDB(optServ, optBase, optUser, optPass) {
+		fmt.Println("Database NOT opened")
 		return
 	}
-
 	UpdateSamba()
-
-	DB.Close()
+	CloseDB()
 }
 
 func getArgs() bool {
@@ -44,12 +38,4 @@ func getArgs() bool {
 		optPass = val
 	}
 	return ok
-}
-
-func GetElm(part string, id lik.IDB) lik.Seter {
-	return DB.GetOneById(part, id)
-}
-
-func GetList(part string) lik.Lister {
-	return DB.GetListElm("*", part, "", "SysNum")
 }

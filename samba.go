@@ -18,7 +18,7 @@ type sysResource struct {
 	Disk     string
 	Comments string
 	Access   string
-	Roles    int
+	Roles    int64
 }
 
 var sysMapResource map[string]*sysResource
@@ -26,8 +26,8 @@ var sysListResource []*sysResource
 
 func UpdateSamba() {
 	sysLoadResourses()
-	if sysUpdateSamba("root", "/etc/samba/public.conf2") {
-		//sysExecute("/etc/init.d/smbd restart")
+	if sysUpdateSamba("root", "/etc/samba/public.conf") {
+		sysExecute("/etc/init.d/smbd restart")
 	}
 }
 
@@ -68,7 +68,7 @@ func sysExecute(cmd string) {
 func sysUpdateSamba(server string, namefile string) bool {
 	code := "# Samba list access\n"
 	for _, resource := range sysListResource {
-		if server := strings.ToLower(resource.Server); server == "root" || true {
+		if server := strings.ToLower(resource.Server); server == "master" {
 			code += fmt.Sprintf("[%s]\n", resource.Namely)
 			if val := resource.Comments; val != "" {
 				code += fmt.Sprintf("\tcomment = %s\n", val)
@@ -105,26 +105,8 @@ func confNameSymbols(name string) string {
 	return name
 }
 
-func confBuildListIP() []*ElmIP {
-	var ips []*ElmIP
-	for _, elm := range IPMapSys {
-		ips = append(ips, elm)
-	}
-	sort.SliceStable(ips, func(i, j int) bool {
-		return ips[i].IP < ips[j].IP
-	})
-	return ips
-}
-
 func confWrite(namefile string, code string) bool {
-	if HostName != "root" {
-		if match := lik.RegExParse(namefile, "public"); match != nil {
-			namefile = "/mnt/filedata/etc/samba/public.conf2"
-		} else if match := lik.RegExParse(namefile, "([^/]+)$"); match != nil {
-			namefile = "./root/" + match[1]
-		}
-	}
-	fmt.Printf("configurate %s\n", namefile)
+	fmt.Printf("Configurate %s\n", namefile)
 	if file, err := os.Open(namefile); err == nil {
 		oldcode := ""
 		buf := make([]byte, 4096)
