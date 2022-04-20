@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/massarakhsh/lik"
 	"github.com/massarakhsh/lik/likbase"
 )
@@ -14,7 +12,7 @@ func OpenDB(serv string, name string, user string, pass string) bool {
 	logon := optUser + ":" + optPass
 	addr := "tcp(" + optServ + ":3306)"
 	if DB = likbase.OpenDBase("mysql", logon, addr, optBase); DB == nil {
-		lik.SayError(fmt.Sprint("DB not opened"))
+		lik.SayError("DB not opened")
 		return false
 	}
 	return true

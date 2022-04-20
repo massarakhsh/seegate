@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/massarakhsh/lik"
 )
@@ -12,7 +13,13 @@ var optBase = ""
 var optUser = ""
 var optPass = ""
 
+var hostName = ""
+
 func main() {
+	if host, err := os.Hostname(); err == nil {
+		hostName = strings.ToLower(host)
+	}
+
 	getArgs()
 
 	if !OpenDB(optServ, optBase, optUser, optPass) {
