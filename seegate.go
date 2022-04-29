@@ -26,7 +26,7 @@ func main() {
 		fmt.Println("Database NOT opened")
 		return
 	}
-	UpdateSamba()
+	UpdateGate()
 	CloseDB()
 }
 

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/massarakhsh/lik"
 )
@@ -34,25 +35,38 @@ type itAccess struct {
 	Roles       int64
 }
 
+const RAT_BRAWSABLE = 0x1
+const RAT_WRITEABLE = 0x2
+const RAT_PRIVATE = 0x4
+
 var sysMapResource map[int]*itResource
 var sysMapAccess map[int]*itAccess
 
-func UpdateSamba() {
-	sysLoadResources()
-	if sysUpdateSamba("/etc/samba/public.conf") {
-		if strings.ToLower(hostName) == "master" {
-			sysExecute("/etc/init.d/smbd restart")
+func UpdateGate() {
+	for sysLoadResources() {
+		if sysUpdateSamba("/etc/samba/public.conf") {
+			if strings.ToLower(hostName) == "master" {
+				sysExecute("/etc/init.d/smbd restart")
+			}
 		}
+		time.Sleep(time.Second * 60)
 	}
 }
 
-func sysLoadResources() {
-	sysTableResource()
-	sysTableAccess()
-	sysSynchroTables()
+func sysLoadResources() bool {
+	if !sysTableResource() {
+		return false
+	}
+	if !sysTableAccess() {
+		return false
+	}
+	if !sysSynchroTables() {
+		return false
+	}
+	return true
 }
 
-func sysTableResource() {
+func sysTableResource() bool {
 	sysMapResource = make(map[int]*itResource)
 	if list := GetList("Resource"); list != nil {
 		for ne := 0; ne < list.Count(); ne++ {
@@ -70,9 +84,10 @@ func sysTableResource() {
 			}
 		}
 	}
+	return true
 }
 
-func sysTableAccess() {
+func sysTableAccess() bool {
 	sysMapAccess = make(map[int]*itAccess)
 	if list := GetList("Access"); list != nil {
 		for ne := 0; ne < list.Count(); ne++ {
@@ -90,19 +105,20 @@ func sysTableAccess() {
 			}
 		}
 	}
+	return true
 }
 
-func sysSynchroTables() {
+func sysSynchroTables() bool {
 	for sys, acc := range sysMapAccess {
 		sysRes := acc.SysResource
 		if sysMapResource[sysRes] == nil {
 			delete(sysMapAccess, sys)
 		}
 	}
-
 	for _, res := range sysMapResource {
 		sysSynchroResource(res)
 	}
+	return true
 }
 
 func sysSynchroResource(resource *itResource) {
@@ -157,15 +173,19 @@ func sysUpdateSamba(namefile string) bool {
 				code += fmt.Sprintf("\tpath = %s\n", val)
 			}
 			if val := resource.Roles; val >= 0 {
-				if (val & 0x1) != 0 {
+				if (val & RAT_BRAWSABLE) != 0 {
 					code += "\tbrowseable = yes\n"
 				} else {
 					code += "\tbrowseable = no\n"
 				}
-				if (val & 0x2) != 0 {
+				if (val & RAT_WRITEABLE) != 0 {
 					code += "\twriteable = yes\n"
 				} else {
 					code += "\twriteable = no\n"
+				}
+				if (val & RAT_PRIVATE) != 0 {
+					code += "\tforce user = root\n"
+					code += "\tforce group = root\n"
 				}
 			}
 			if val := resource.Access; val != "" {
@@ -186,7 +206,6 @@ func confNameSymbols(name string) string {
 }
 
 func confWrite(namefile string, code string) bool {
-	fmt.Printf("Configurate %s\n", namefile)
 	if file, err := os.Open(namefile); err == nil {
 		oldcode := ""
 		buf := make([]byte, 4096)
@@ -206,7 +225,7 @@ func confWrite(namefile string, code string) bool {
 	if file, err := os.Create(namefile); err == nil {
 		file.WriteString(code)
 		file.Close()
-		fmt.Printf("updated\n")
+		fmt.Printf("Configuration file %s was updates\n", namefile)
 		return true
 	}
 	return false

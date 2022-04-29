@@ -1,4 +1,4 @@
-module github.com/massarakhsh/seesamba
+module github.com/massarakhsh/seegate
 
 go 1.16
 
